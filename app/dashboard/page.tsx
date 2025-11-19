@@ -41,9 +41,9 @@ export default function Dashboard() {
         <div className="max-w-7xl mx-auto px-6 py-8">
           {/* Hero Section */}
           <div className="mb-8 text-center">
-            <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-green-400 via-yellow-400 to-green-500 bg-clip-text text-transparent">
+            <h2 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-green-400 via-yellow-400 to-green-500 bg-clip-text text-transparent">
               Welcome{username ? ` ${username}` : ""}!
-            </h1>
+            </h2>
             <p className="text-lg text-gray-400 mb-6">Start mining AFX and grow your digital assets</p>
 
 
