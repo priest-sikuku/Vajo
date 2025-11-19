@@ -1,0 +1,24 @@
+{
+  "name": "AfriX - The Coin That Never Sleeps",
+  "short_name": "AfriX",
+  "description": "AfriX (AFX) — The Coin That Never Sleeps. Mine every 3 hours. 3% daily growth. P2P trading.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1720",
+  "theme_color": "#22c55e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.jpg",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.jpg",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
