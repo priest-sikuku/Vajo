@@ -14,7 +14,7 @@ export default function SignUpSuccess() {
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h1 className="text-3xl font-bold mb-2">Account Created!</h1>
           <p className="text-gray-400 mb-6">
-            Please check your email to confirm your account. Once confirmed, you can sign in and start trading GrowX
+            Please check your email to confirm your account. Once confirmed, you can sign in and start trading afriX
             coins.
           </p>
 
