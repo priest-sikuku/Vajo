@@ -238,6 +238,14 @@ export async function getMiningStatus() {
     const miningConfig = await getMiningConfig()
     const boostedRate = await getBoostedMiningRate(user.id)
 
+    const { data: supplyData } = await supabase
+      .from("global_supply")
+      .select("remaining_supply, total_supply")
+      .single()
+    
+    const remainingSupply = supplyData?.remaining_supply || 0
+    const totalSupply = supplyData?.total_supply || 1000000
+
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("last_mine, next_mine")
@@ -260,7 +268,9 @@ export async function getMiningStatus() {
       nextMine: profile.next_mine,
       timeRemaining: canMine ? 0 : nextMine.getTime() - now.getTime(),
       miningConfig,
-      boostedRate, // Include boost details in status
+      boostedRate,
+      remainingSupply,
+      totalSupply,
     }
   } catch (error) {
     console.error("[v0] Exception in getMiningStatus:", error)

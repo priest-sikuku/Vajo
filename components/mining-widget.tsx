@@ -2,7 +2,7 @@
 
 import { useMining } from "@/lib/hooks/use-mining"
 import { FlatMiningProgress } from "./flat-mining-progress"
-import { Loader2, Sparkles, TrendingUp, Users } from 'lucide-react'
+import { Loader2, Sparkles, TrendingUp, Users, Database } from 'lucide-react'
 import { Button } from "./ui/button"
 import { useState, useEffect } from "react"
 import { useRouter } from 'next/navigation'
@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/client"
 
 export function MiningWidget() {
   const router = useRouter()
-  const { canMine, timeRemaining, isClaiming, isLoading, handleClaim, miningConfig, boostedRate } = useMining()
+  const { canMine, timeRemaining, isClaiming, isLoading, handleClaim, miningConfig, boostedRate, remainingSupply, totalSupply } = useMining()
   const [showSuccess, setShowSuccess] = useState(false)
   const [showCoinSplash, setShowCoinSplash] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -81,6 +81,25 @@ export function MiningWidget() {
             Mine <span className="text-yellow-400 font-bold">{finalRate.toFixed(2)} AFX</span> every {intervalHours}{" "}
             hours
           </p>
+        </div>
+
+        {/* Global Supply Indicator */}
+        <div className="w-full max-w-md px-4 py-2 bg-black/20 rounded-lg border border-white/5 backdrop-blur-sm">
+          <div className="flex justify-between items-center mb-1">
+            <div className="flex items-center gap-1.5 text-xs text-gray-400">
+              <Database className="w-3 h-3" />
+              <span>Global Supply Remaining</span>
+            </div>
+            <span className="text-xs font-mono text-yellow-500/80">
+              {remainingSupply.toLocaleString(undefined, { maximumFractionDigits: 0 })} / {totalSupply.toLocaleString()} AFX
+            </span>
+          </div>
+          <div className="h-1.5 w-full bg-gray-700/50 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400 transition-all duration-1000"
+              style={{ width: `${(remainingSupply / totalSupply) * 100}%` }}
+            />
+          </div>
         </div>
 
         {isAuthenticated && (

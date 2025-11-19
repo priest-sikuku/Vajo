@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { Users } from "lucide-react"
+import { Users } from 'lucide-react'
 
 export function UserCountWidget() {
-  const [userCount, setUserCount] = useState<number>(1239)
+  const [userCount, setUserCount] = useState<number>(7309)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 

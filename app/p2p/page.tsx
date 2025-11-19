@@ -139,16 +139,6 @@ export default function P2PMarket() {
     setLoading(true)
     try {
       const adType = activeTab === "buy" ? "sell" : "buy"
-      const { data: rpcData, error: rpcError } = await supabase.rpc("get_user_regional_p2p_ads", {
-        p_user_id: (await supabase.auth.getUser()).data.user?.id
-      })
-
-      if (rpcError) {
-        console.error("[v0] Error fetching ads:", rpcError)
-        return
-      }
-
-      const filteredAds = (rpcData || []).filter((ad: any) => ad.ad_type === adType)
       
       const { data: tableData, error: tableError } = await supabase
         .from("p2p_ads")
@@ -167,7 +157,7 @@ export default function P2PMarket() {
         .order("created_at", { ascending: false })
 
       if (tableError) {
-        console.error("[v0] Error fetching ads:", tableError)
+        console.error("[v0] Error fetching ads:", tableError.message)
         return
       }
 

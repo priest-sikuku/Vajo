@@ -18,6 +18,9 @@ export function useMining() {
   const [isLoading, setIsLoading] = useState(true)
   const [miningConfig, setMiningConfig] = useState<any>(null)
   const [boostedRate, setBoostedRate] = useState<BoostedRate | null>(null) // Track boosted rate
+  const [remainingSupply, setRemainingSupply] = useState<number>(0)
+  const [totalSupply, setTotalSupply] = useState<number>(1000000)
+  // </CHANGE>
 
   const fetchMiningStatus = useCallback(async () => {
     const result = await getMiningStatus()
@@ -26,7 +29,10 @@ export function useMining() {
       setNextMine(result.nextMine || null)
       setTimeRemaining(result.timeRemaining || 0)
       setMiningConfig(result.miningConfig)
-      setBoostedRate(result.boostedRate || null) // Store boosted rate
+      setBoostedRate(result.boostedRate || null)
+      if (result.remainingSupply !== undefined) setRemainingSupply(result.remainingSupply)
+      if (result.totalSupply !== undefined) setTotalSupply(result.totalSupply)
+      // </CHANGE>
     }
     setIsLoading(false)
   }, [])
@@ -68,6 +74,9 @@ export function useMining() {
       setTimeRemaining(intervalMs)
       setMiningConfig(result.miningConfig)
       setBoostedRate(result.boostedRate || null) // Update boosted rate after claim
+      // Update supply state after claim
+      if (result.remainingSupply !== undefined) setRemainingSupply(result.remainingSupply)
+      // </CHANGE>
       setTimeout(fetchMiningStatus, 1000)
     } else {
       console.error("[v0] Mining claim failed:", result.error)
@@ -86,6 +95,9 @@ export function useMining() {
     handleClaim,
     refreshStatus: fetchMiningStatus,
     miningConfig,
-    boostedRate, // Expose boosted rate to components
+    boostedRate,
+    remainingSupply,
+    totalSupply,
+    // </CHANGE>
   }
 }

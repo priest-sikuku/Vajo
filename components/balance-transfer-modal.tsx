@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ArrowLeftRight, ArrowRight } from "lucide-react"
+import { ArrowLeftRight, ArrowRight } from 'lucide-react'
 import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 
@@ -39,7 +39,7 @@ export function BalanceTransferModal({
       return
     }
 
-    const transferAmount = Number(amount)
+    const transferAmount = Math.round(Number(amount) * 100) / 100
     const sourceBalance = direction === "to_p2p" ? dashboardBalance : p2pBalance
 
     if (transferAmount > sourceBalance) {
@@ -62,8 +62,6 @@ export function BalanceTransferModal({
 
       const functionName = direction === "to_p2p" ? "transfer_to_p2p" : "transfer_from_p2p"
 
-      console.log("[v0] Calling transfer function:", functionName, "with amount:", transferAmount)
-
       const { data, error } = await supabase.rpc(functionName, {
         p_user_id: user.id,
         p_amount: transferAmount,
@@ -73,8 +71,6 @@ export function BalanceTransferModal({
         console.error("[v0] Transfer RPC error:", error)
         throw error
       }
-
-      console.log("[v0] Transfer successful:", data)
 
       toast({
         title: "Transfer Successful",
@@ -102,6 +98,12 @@ export function BalanceTransferModal({
   const toggleDirection = () => {
     setDirection(direction === "to_p2p" ? "to_dashboard" : "to_p2p")
     setAmount("")
+  }
+
+  const handleSetMax = () => {
+    const maxBalance = direction === "to_p2p" ? dashboardBalance : p2pBalance
+    const roundedMax = Math.round(maxBalance * 100) / 100
+    setAmount(roundedMax.toFixed(2))
   }
 
   return (
@@ -149,10 +151,7 @@ export function BalanceTransferModal({
                 onChange={(e) => setAmount(e.target.value)}
                 className="flex-1"
               />
-              <Button
-                variant="outline"
-                onClick={() => setAmount((direction === "to_p2p" ? dashboardBalance : p2pBalance).toString())}
-              >
+              <Button variant="outline" onClick={handleSetMax}>
                 Max
               </Button>
             </div>

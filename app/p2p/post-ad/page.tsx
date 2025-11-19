@@ -39,6 +39,7 @@ export default function PostAdPage() {
   })
 
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("")
+  const [selectedBuyMethods, setSelectedBuyMethods] = useState<string[]>([])
   const [paymentDetails, setPaymentDetails] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -92,7 +93,6 @@ export default function PostAdPage() {
             return prev
         })
       } else {
-        console.error("[v0] Error fetching from coin_ticks:", error)
         const { data: currentPrice } = await supabase.from("afx_current_price").select("price").single()
 
         const baseFallbackPrice = currentPrice?.price ? Number(currentPrice.price) : 13.0
@@ -120,11 +120,18 @@ export default function PostAdPage() {
     return () => clearInterval(interval)
   }, [])
 
+  const minGlobalPriceUSD = 0.13
   const minAllowedPrice = (currentAFXPrice * 0.96).toFixed(2)
   const maxAllowedPrice = (currentAFXPrice * 1.04).toFixed(2)
 
   const validatePaymentDetails = () => {
-    if (adType === "buy") return true;
+    if (adType === "buy") {
+      if (selectedBuyMethods.length === 0) {
+        alert("Please select at least one payment method you support");
+        return false;
+      }
+      return true;
+    }
 
     if (!selectedPaymentMethod) {
       alert("Please select a payment method");
@@ -163,6 +170,7 @@ export default function PostAdPage() {
       }
 
       const pricePerAFX = Number.parseFloat(formData.pricePerAFX)
+      
       if (pricePerAFX < Number.parseFloat(minAllowedPrice) || pricePerAFX > Number.parseFloat(maxAllowedPrice)) {
         alert(`Price must be between ${minAllowedPrice} and ${maxAllowedPrice} ${userCurrency} (±4% of current price)`)
         setLoading(false)
@@ -221,7 +229,40 @@ export default function PostAdPage() {
         alert("Sell ad posted successfully! Your coins have been locked for this ad.")
         router.push("/p2p")
       } else {
-        // ... existing buy ad code ...
+        const dbBuyDetails: any = {
+          p_user_id: user.id,
+          p_afx_amount: Number.parseFloat(formData.afxAmount),
+          p_price_per_afx: pricePerAFX,
+          p_min_amount: Number.parseFloat(formData.minAmount),
+          p_max_amount: Number.parseFloat(formData.maxAmount),
+          p_terms_of_trade: formData.termsOfTrade || null,
+          p_country_code: userCountry || 'KE',
+          p_currency_code: userCurrency || 'KES'
+        };
+
+        if (selectedBuyMethods.some(m => m.includes('mpesa'))) {
+          dbBuyDetails.p_mpesa_number = 'Available';
+        }
+        if (selectedBuyMethods.some(m => m.includes('paybill'))) {
+          dbBuyDetails.p_paybill_number = 'Available';
+        }
+        if (selectedBuyMethods.some(m => m.includes('airtel'))) {
+          dbBuyDetails.p_airtel_number = 'Available';
+        }
+        if (selectedBuyMethods.some(m => m.includes('bank') || m.includes('transfer'))) {
+          dbBuyDetails.p_account_number = 'Available';
+        }
+
+        const { data, error } = await supabase.rpc("post_buy_ad", dbBuyDetails)
+
+        if (error) {
+          console.error("[v0] Error creating buy ad:", error)
+          alert("Failed to create buy ad: " + error.message)
+          return
+        }
+
+        alert("Buy ad posted successfully!")
+        router.push("/p2p")
       }
     } catch (error) {
       console.error("[v0] Error:", error)
@@ -414,15 +455,41 @@ export default function PostAdPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm text-gray-400">Available payment methods for this region</p>
-                  {availablePaymentGateways.map((gateway) => (
-                    <div key={gateway.code} className="flex items-center space-x-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <Label className="cursor-pointer">
-                        {gateway.name}
-                      </Label>
-                    </div>
-                  ))}
+                  <Label>Select Payment Methods You Support *</Label>
+                  <p className="text-sm text-gray-400 mb-2">Choose the methods you can use to pay sellers.</p>
+                  <div className="grid grid-cols-1 gap-3">
+                    {availablePaymentGateways.map((gateway) => (
+                      <div 
+                        key={gateway.code} 
+                        className={`
+                          flex items-center space-x-3 p-3 rounded-lg border transition-all
+                          ${selectedBuyMethods.includes(gateway.code) 
+                            ? "bg-green-500/10 border-green-500/50" 
+                            : "bg-white/5 border-white/10 hover:bg-white/10"}
+                        `}
+                      >
+                        <Checkbox 
+                          id={`payment-${gateway.code}`}
+                          checked={selectedBuyMethods.includes(gateway.code)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedBuyMethods([...selectedBuyMethods, gateway.code])
+                            } else {
+                              setSelectedBuyMethods(selectedBuyMethods.filter(m => m !== gateway.code))
+                            }
+                          }}
+                          className="border-white/30 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                        />
+                        <label 
+                          htmlFor={`payment-${gateway.code}`}
+                          className="flex flex-col cursor-pointer flex-1"
+                        >
+                          <span className="font-medium text-white">{gateway.name}</span>
+                          <span className="text-xs text-gray-400">{gateway.type.replace('_', ' ')}</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

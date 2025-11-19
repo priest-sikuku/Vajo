@@ -109,8 +109,6 @@ export default function SignUp() {
     }
 
     try {
-      console.log("[v0] Starting signup process...")
-
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -129,12 +127,7 @@ export default function SignUp() {
       if (signUpError) throw signUpError
 
       if (data?.user) {
-        console.log("[v0] User created:", data.user.id)
-
-        // Link referral if code provided
         if (formData.referralCode) {
-          console.log("[v0] Attempting to link referral code:", formData.referralCode.toUpperCase())
-
           try {
             const { error: refError } = await supabase.rpc("link_referral", {
               p_user_id: data.user.id,
@@ -142,24 +135,31 @@ export default function SignUp() {
             })
 
             if (refError) {
-              console.error("[v0] Referral linking failed:", refError)
-              setError(`Account created but referral code could not be applied: ${refError.message}`)
-            } else {
-              console.log("[v0] Referral linked successfully")
+              console.error("Referral linking failed:", refError)
+              setError(`Account created! However, the referral code could not be applied. Please check your email to verify your account.`)
+              setTimeout(() => router.push("/auth/sign-up-success"), 2000)
+              return
             }
           } catch (refErr) {
-            console.error("[v0] Referral error:", refErr)
+            console.error("Referral error:", refErr)
           }
-        } else {
-          console.log("[v0] No referral code provided")
         }
 
-        console.log("[v0] Redirecting to success page...")
         router.push("/auth/sign-up-success")
       }
     } catch (err) {
-      console.error("[v0] Signup error:", err)
-      setError(err instanceof Error ? err.message : "An error occurred during sign up")
+      console.error("Signup error:", err)
+      if (err instanceof Error) {
+        if (err.message.includes("already registered")) {
+          setError("This email is already registered. Please sign in instead.")
+        } else if (err.message.includes("Invalid email")) {
+          setError("Please enter a valid email address")
+        } else {
+          setError(err.message)
+        }
+      } else {
+        setError("An error occurred during sign up. Please try again.")
+      }
     } finally {
       setLoading(false)
     }
